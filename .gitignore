@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+
+# Earshot (local Python environment + cloned repo)
+.earshot-venv/
+.earshot-repo/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Remotion
+.remotion/
+
+# Misc
+*.log
