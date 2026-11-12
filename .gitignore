@@ -20,5 +20,8 @@ Thumbs.db
 # Remotion
 .remotion/
 
+# Vendor (cloned reference repos)
+.vendor/
+
 # Misc
 *.log

@@ -2,11 +2,28 @@
 
 This is a zero-config Remotion video framework. Scenes are auto-discovered from `src/scenes/`.
 
+## First-Time Setup (required after clone)
+
+```bash
+npm run setup
+```
+
+This single command (`scripts/setup.sh`) installs everything:
+1. **Node packages** — Remotion, Three.js, react-three-fiber, rapier, postprocessing, GSAP, Lottie
+2. **Python venv** — `.earshot-venv/` with Earshot (AI SFX) + librosa (beat detection)
+3. **video-shotcraft** — Cloned to `.vendor/video-shotcraft/` (124 motion recipes)
+
+If any tool is missing or broken, re-run `npm run setup`.
+
 ## Quick Start
 
-- `npm start` — Opens Remotion Studio in browser
+```bash
+npm start        # Opens Remotion Studio in browser
+```
+
 - `npm run build` — Renders full video to `out/video.mp4`
 - `npx remotion render <SceneId> out/scene.mp4` — Render a single scene
+- `npm run beat-detect -- public/audio/file.mp3 --out src/beats.ts` — Beat detection
 
 ## Creating a New Scene
 
@@ -85,6 +102,101 @@ SPRING_CONFIG.soft     // { damping: 30, stiffness: 80, mass: 1 }
 SPRING_CONFIG.bounce   // { damping: 10, stiffness: 150, mass: 0.5 }
 ```
 
+## TradingView-Style Charts
+
+Import from `"../design/components"`:
+
+```tsx
+import { TradingChart } from "../design/components";
+
+<TradingChart
+  width={980}
+  height={520}
+  direction="bearish"            // "bearish" | "bullish"
+  color="#E05A47"                // primary candle color
+  colorAlt="#34A853"             // opposite candle color
+  seed={42}                      // deterministic data generation
+  candleCount={45}               // number of candlesticks
+  delay={2}                      // animation delay in frames
+  showForecast                   // forecast cone at chart end
+  forecastColor="#E05A47"        // forecast cone color
+  showVolume                     // volume bars at bottom
+  showMA                         // MA(7) + MA(20) moving averages
+  showGrid                       // horizontal + vertical grid lines
+  showPriceAxis                  // price labels + live price badge
+  opacity={0.4}
+/>
+```
+
+Features: Animated candlestick reveal (left→right), OHLCV data, MA(7) orange + MA(20) purple lines, volume bars, forecast cone with dashed trend lines, grid, price axis with live badge. All deterministic via `seed`.
+
+## Three.js 3D Scenes (@remotion/three)
+
+Create 3D scenes using Three.js + react-three-fiber synced to Remotion's frame clock:
+
+```tsx
+import { ThreeCanvas } from "@remotion/three";
+import * as THREE from "three";
+
+const My3DScene: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  return (
+    <ThreeCanvas
+      width={1080}
+      height={1920}
+      camera={{ position: [0, 2, 10], fov: 50 }}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[5, 8, 5]} intensity={0.8} />
+      <mesh rotation={[0, frame / fps, 0]}>
+        <torusKnotGeometry args={[1, 0.3, 128, 32]} />
+        <meshStandardMaterial color="#00BCD4" metalness={0.8} roughness={0.2} />
+      </mesh>
+    </ThreeCanvas>
+  );
+};
+```
+
+Installed packages:
+- `three` + `@types/three` — 3D engine
+- `@react-three/fiber` (v8) — React renderer for Three.js
+- `@react-three/rapier` (v1) — Physics engine (note: use procedural math for seekable animations)
+- `@react-three/postprocessing` (v2) — Bloom, glitch, vignette effects
+- `@remotion/three` — Remotion ↔ Three.js bridge (`ThreeCanvas`)
+
+**Important:** Rapier physics simulations are NOT frame-seekable. For deterministic Remotion animations, use procedural math (interpolate, spring, gravity formulas) instead of physics simulation.
+
+## Beat Detection (librosa)
+
+Analyze audio for beat-synced animations:
+
+```bash
+# Output TypeScript beat data to stdout
+npm run beat-detect -- public/audio/voiceover.mp3
+
+# Write to file
+npm run beat-detect -- public/audio/voiceover.mp3 --fps 30 --out src/beats.ts
+```
+
+Generates:
+```ts
+export const BEAT_DATA = {
+  tempo: 143.6,
+  durationSeconds: 28.37,
+  durationFrames: 851,
+  beatFrames: [68, 82, 95, ...],
+} as const;
+```
+
+Import in scenes for beat-synced keyframes.
+
+## Video-Shotcraft Reference (motion recipes)
+
+After `npm run setup`, 124 motion recipes are available in `.vendor/video-shotcraft/references/shots/`. Use these as reference for shot composition, camera movement patterns, and animation sequencing.
+
 ## Available Components
 
 Import from `"../design/components"`:
@@ -136,22 +248,25 @@ Import from `"../design/components"`:
 Import from `"../design/tokens"`:
 
 ```
-COLORS.bgPrimary       "#F9F9F7"   warm off-white
-COLORS.bgSecondary     "#F0F4F8"   pale blue
-COLORS.textPrimary     "#1B2A4A"   navy
-COLORS.textSecondary   "#2D4470"   lighter navy
+COLORS.bgPrimary       "#F8F9FB"   warm off-white
+COLORS.bgSecondary     "#F1F3F6"   pale gray
+COLORS.textPrimary     "#17191F"   near-black
+COLORS.textSecondary   "#777D87"   gray
 COLORS.accent          "#00BCD4"   cyan
 COLORS.accentAlt       "#2196F3"   blue
 COLORS.accentLight     "#E3F2FD"   light blue
 COLORS.brand           "#F4845F"   orange
+COLORS.positive        "#34A853"   green (bullish)
+COLORS.negative        "#E05A47"   red (bearish)
+COLORS.gold            "#C9A84C"   gold
 COLORS.cardBg          "#FFFFFF"
 COLORS.cardBorder      "#E8EDF2"
 COLORS.cardShadow      "rgba(27, 42, 74, 0.08)"
 COLORS.white           "#FFFFFF"
 COLORS.black           "#000000"
 
-FONTS.heading          "Inter, system-ui, ..."
-FONTS.body             "Inter, system-ui, ..."
+FONTS.heading          "SF Pro Display, Inter, system-ui, ..."
+FONTS.body             "SF Pro Display, Inter, system-ui, ..."
 
 FONT_SIZES.heroTitle   64
 FONT_SIZES.sceneTitle  52
@@ -160,12 +275,12 @@ FONT_SIZES.body        20
 FONT_SIZES.caption     16
 FONT_SIZES.label       14
 
-VIDEO.width            1920
-VIDEO.height           1080
+VIDEO.width            1080
+VIDEO.height           1920
 VIDEO.fps              30
 
-SAFE_AREA.horizontal   120px
-SAFE_AREA.vertical     60px
+SAFE_AREA.horizontal   60px
+SAFE_AREA.vertical     120px
 
 toFrames(seconds)      Convert seconds to frames
 ```

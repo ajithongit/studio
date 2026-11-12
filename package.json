@@ -6,17 +6,25 @@
     "start": "npx remotion studio",
     "build": "npx remotion render MainVideo out/video.mp4",
     "build:scene": "npx remotion render",
-    "preview": "npx remotion preview"
+    "preview": "npx remotion preview",
+    "setup": "bash scripts/setup.sh",
+    "beat-detect": ".earshot-venv/Scripts/python scripts/beat-detect.py"
   },
   "dependencies": {
+    "@react-three/fiber": "^8.18.0",
+    "@react-three/postprocessing": "^2.19.1",
+    "@react-three/rapier": "^1.5.0",
     "@remotion/cli": "4.0.242",
     "@remotion/gsap": "^4.0.540",
     "@remotion/lottie": "^4.0.242",
     "@remotion/player": "4.0.242",
+    "@remotion/three": "^4.0.242",
+    "@types/three": "^0.187.0",
     "gsap": "^3.15.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "remotion": "4.0.242"
+    "remotion": "4.0.242",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
